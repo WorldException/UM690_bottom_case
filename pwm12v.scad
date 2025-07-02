@@ -84,14 +84,14 @@ module casebox(w, h, z, thin){
         }
 }
 
-module casebox_top(w, h, thin, top=2){
+module casebox_top(w, h, thin, top=2, d=0.00){
     d = 1.5;
     difference() {
         union(){
-            cube([w,h,thin]);
-            translate([thin, thin, thin]) cube([w-thin*2,h-thin*2, top]);
+            cube([w,h,thin]); // основание
+            translate([thin-d, thin-d, thin-d]) cube([w-thin*2+d*2,h-thin*2+d*2, top]); // выступ
         }
-        translate([thin+d, thin+d, thin]) cube([w-thin*2-d*2,h-thin*2-d*2, top]);
+        translate([thin+d, thin+d, thin]) cube([w-thin*2-d*2,h-thin*2-d*2, top]); // внутреняя полость
     }
 }
 
@@ -113,7 +113,10 @@ module pwm_case(thin=1, with_top=true, bt_top=0){
 /*
 разместить pwm на дочернем объекте
 
-bottom_thin - толщина основания для формирования отверстий и кнопки
+    mv - координаты смещения
+    rot - вращение
+    bottom_thin - толщина основания для формирования отверстий и кнопки
+    bt_top - насколько должна кнопка выступать от поверхности
 */
 module pwm_place(mv=[0,0,0], rot=[0,0,0], bottom_thin, bt_top=0){
     difference(){
@@ -125,7 +128,7 @@ module pwm_place(mv=[0,0,0], rot=[0,0,0], bottom_thin, bt_top=0){
             translate(mv) rotate(rot) pwm_clips();
             translate(mv) rotate(rot) pwm_holes_guard();
         }
-        translate(mv) rotate(rot) pwm_holes(bootom_z=bottom_thin+1, d_led=pwm_led_d);
+        translate(mv) rotate(rot) pwm_holes(bottom_z=bottom_thin+1, d_led=pwm_led_d);
     }
     translate(mv) rotate(rot) pwm_button(z=bottom_thin, top=bt_top);
 }
@@ -146,6 +149,7 @@ module pwm_clips(thin=1.5, v_thin=1){
     cyl_r = 2;
     cyl_d = cyl_r*2;
     cyl_r0 = screw_d/2;
+    leg_delta = -0.2; // корректировка толщины ножки
     union(){
         // ограничитель верхнего угла
         translate([w_pwm, 0, z_pwm-h_stop_1]) cube([v_thin, thin, v_thin+h_stop_1]);
@@ -167,7 +171,7 @@ module pwm_clips(thin=1.5, v_thin=1){
             translate([w_pwm/2, h_pwm-cyl_r+cyl_r0, 0]) 
                 difference() {
                     //cylinder(z_pwm, r=cyl_r, $fn=40);
-                    translate([-cyl_d, 0, 0]) cube([cyl_d*2, cyl_d, z_pwm-1.7]);
+                    translate([-cyl_d, 0, 0]) cube([cyl_d*2, cyl_d+leg_delta, z_pwm-1.7]); // основание
                     translate([0, cyl_r, z_pwm-5]) cylinder(z_pwm, r=cyl_r0, $fn=40);
                 }
         }
@@ -238,7 +242,8 @@ top - насколько кнопка должна выступать после
 */
 module pwm_button(z=0, top=0){
     pwm_bt_dh = 0.2; // отступ от нижнего слоя
-    pwm_bt_h2 = 4.2; // высота от кнопки до корпуса внутри
+    //pwm_bt_h2 = 4.2; //ABS высота от кнопки до корпуса внутри
+    pwm_bt_h2 = 4.0; //PETG высота от кнопки до корпуса внутри
     pwm_bt_h1 = z + top; // высота внутри отверстия
     pwm_bt_d2 = pwm_bt_d_hole + 1; // диаметр кнопки за отверстием, шире что бы не выпадала
     pwm_bt_h = pwm_bt_h1 + pwm_bt_h2;
