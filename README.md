@@ -2,6 +2,28 @@
 
 UM690 bottom case with PWM
 
+![case_pwm](./assets/case_pwm.png)
+
+PWM module 12V
+![pwm_moudle](./assets/pwm.png)
+
+# Requirements
+
+- BOSL2
+
+# Make
+
+```bash
+# case with PWM module
+openscad -D with_pwm=true  -o UM690_v3_PWM.stl UM690_v3.scad
+
+# case without PWM module
+openscad -D with_pwm=false -o UM690_v3.stl UM690_v3.scad
+
+# pwm case
+openscad -o PWMv12_case.stl pwm12v.scad
+```
+
 # Description
 
 Minisforum UM690 and UM690 case for 8010 cooler with PWM controller.
