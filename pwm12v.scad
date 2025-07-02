@@ -84,12 +84,12 @@ module casebox(w, h, z, thin){
         }
 }
 
-module casebox_top(w, h, thin, top=2, d=0.00){
+module casebox_top(w, h, thin, top=2, dt=0.00){
     d = 1.5;
     difference() {
         union(){
             cube([w,h,thin]); // основание
-            translate([thin-d, thin-d, thin-d]) cube([w-thin*2+d*2,h-thin*2+d*2, top]); // выступ
+            translate([thin-dt, thin-dt, thin-dt]) cube([w-thin*2+dt*2,h-thin*2+dt*2, top]); // выступ
         }
         translate([thin+d, thin+d, thin]) cube([w-thin*2-d*2,h-thin*2-d*2, top]); // внутреняя полость
     }
