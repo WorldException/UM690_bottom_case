@@ -25,8 +25,6 @@ pwm_hole_delta = 24+0.2; // смещение дырок
 pwm_bt_delta_x = 13.5; // смещение кнопки
 pwm_bt_delta_y = 4.4; //h_pwm-9.6+0.2; // от стенки до кнопки
 
-debug=true;
-box = true;
 
 // тип зажима платы
 /*
@@ -38,9 +36,16 @@ fix_type = 2;
 // диаметр шурупа
 screw_d = 2;
 
-if (debug){
-    pwm_plate(1);
-    pwm_case(1);
+// параметры для генерации
+case_make=true;
+case_thin = 1;
+case_button_top = 1;
+case_with_top=true;
+
+
+if (case_make){
+    pwm_plate(case_thin);
+    pwm_case(case_thin, bt_top=case_button_top, with_top=case_with_top);
 }
 
 // корпус PWM
@@ -50,26 +55,58 @@ module pwm_plate(z){
 
 // оболочка корпуса
 module casebox(w, h, z, thin){
+    d_bort = 1; // толщина крышки
+    d_h = 1;
     box = square([w, h]);
     //rbox = round_corners(box, radius=rad_fillet);
-    translate([-1, 0, 0]) difference(){
-        offset_sweep(box, height=z, check_valid=false);
-        up(thin)
-            offset_sweep(offset(box, r=-thin, closed=true), height=z);
-        // право
-        translate([w-thin, 6, thin])
-            cube([thin, 13, z_pwm]);
-        // лево
-        translate([0, thin, thin])
-            cube([thin, h_pwm, z_pwm]);
+    translate([-1, 0, 0]) 
+        union(){
+            difference(){
+                offset_sweep(box, height=z, check_valid=false);
+                up(thin)
+                    offset_sweep(offset(box, r=-thin, closed=true), height=z);
+                // право
+                translate([w-thin, 6+thin, thin])
+                    cube([thin, 12, z_pwm]);
+                // лево
+                translate([0, thin+1, thin])
+                    cube([thin, h_pwm-1, z_pwm]);
+            }
+            /*
+            // бортик для крышки
+            difference() {
+                translate([0, 0, z]) cube([w,h,d_h*2]);
+                translate([thin, thin+d_bort, z]) cube([w+thin, h-thin*2-d_bort*2, d_h*2]);
+                translate([thin, thin, z]) cube([w-thin*2+d_bort, h-thin*2, d_bort]);
+                //translate([thin, thin, z+d_h]) offset_sweep(square([w-thin*2+d_bort, h-thin*2]), height=d_bort, top=os_chamfer(width=0.1), $fn=60);
+            }
+            */
+        }
+}
+
+module casebox_top(w, h, thin, top=2){
+    d = 1.5;
+    difference() {
+        union(){
+            cube([w,h,thin]);
+            translate([thin, thin, thin]) cube([w-thin*2,h-thin*2, top]);
+        }
+        translate([thin+d, thin+d, thin]) cube([w-thin*2-d*2,h-thin*2-d*2, top]);
     }
 }
 
 // корпус в сборе
-module pwm_case(thin=1){
-    pwm_place(mv=[0,0,thin],bottom_thin=thin){
+module pwm_case(thin=1, with_top=true, bt_top=0){
+    case_w = w_pwm+2+thin*2;
+    case_h = h_pwm+thin+thin*2+3;
+    case_z = 12;
+    pwm_place(mv=[0,0,thin],bottom_thin=thin, bt_top=bt_top){
         translate([-thin,-thin,0])
-            casebox(w_pwm+2+thin*2, h_pwm+thin+thin*2+3, 12, thin);
+            casebox(case_w, case_h, case_z, thin);
+    }
+    if (with_top){
+        translate([-thin-1, -case_h-thin*4, 0]) 
+            casebox_top(case_w, case_h, thin);
     }
 }
 
@@ -78,7 +115,7 @@ module pwm_case(thin=1){
 
 bottom_thin - толщина основания для формирования отверстий и кнопки
 */
-module pwm_place(mv=[0,0,0], rot=[0,0,0], bottom_thin){
+module pwm_place(mv=[0,0,0], rot=[0,0,0], bottom_thin, bt_top=0){
     difference(){
         union(){
             difference(){
@@ -86,11 +123,11 @@ module pwm_place(mv=[0,0,0], rot=[0,0,0], bottom_thin){
                 translate(mv) rotate(rot) pwm_clips_diff();
             }
             translate(mv) rotate(rot) pwm_clips();
-            translate(mv) rotate(rot) pwm_holes_guard(z=bottom_thin);
+            translate(mv) rotate(rot) pwm_holes_guard();
         }
-        translate(mv) rotate(rot) pwm_holes(d_led=pwm_led_d);
+        translate(mv) rotate(rot) pwm_holes(bootom_z=bottom_thin+1, d_led=pwm_led_d);
     }
-    translate(mv) rotate(rot)pwm_button(z=bottom_thin);
+    translate(mv) rotate(rot) pwm_button(z=bottom_thin, top=bt_top);
 }
 
 // зацепы для крепления платы
@@ -147,6 +184,7 @@ module pwm_clips_diff(){
     dy_left = 18;
 
     d = 0.5;
+    r_scr = 2; // радиус шляпки шурупа
 
     if(fix_type==1){
         // ножка, вырез
@@ -154,12 +192,12 @@ module pwm_clips_diff(){
     }
     if (fix_type==2){
         // вырез по шляпку
-        translate([w_pwm/2, h_pwm, z_pwm]) cylinder(5, r=3.5 , $fn=40);
+        translate([w_pwm/2, h_pwm+r_scr/2, z_pwm]) cylinder(5, r=r_scr , $fn=40);
     }
 }
 
 // отверстия для светодиодов и кнопки pwm модуля
-module pwm_holes(bottom_z=10, led_z = 4, d_led = 1.9){
+module pwm_holes(bottom_z=10, led_z = 4.2, d_led = 1.9){
     //led_z = 4; // дистанция до светодиодов
     //d_led = 1.9; // диметр отверсия для световода
     r_led = d_led / 2;
@@ -184,9 +222,7 @@ module pwm_holes(bottom_z=10, led_z = 4, d_led = 1.9){
 }
 
 // блок для световодов
-module pwm_holes_guard(z=0, led_z = 4, d_led_leg = 3){
-    //d_led_leg = 2.2; // диаметр ножки световода
-    r_led_leg = d_led_leg / 2;
+module pwm_holes_guard(led_z = 4){
     delta_led = 3; // расстояние между светодиодами
     d1 = 4;
     h = delta_led*2+d1;
@@ -194,19 +230,16 @@ module pwm_holes_guard(z=0, led_z = 4, d_led_leg = 3){
     
     translate([pwm_hole_delta-d1/2, h_pwm-w, 0])
         cube([h, w, led_z]);
-        /*
-        union(){
-            cylinder(led_z, r=r_led_leg);
-            translate([delta_led, 0]) cylinder(led_z, r=r_led_leg);
-            translate([delta_led * 2, 0]) cylinder(led_z, r=r_led_leg);
-        }*/
 }
 
-// кнопка PWM
-module pwm_button(z=0){
+/* кнопка PWM
+z - толщина основания
+top - насколько кнопка должна выступать после сборки относительно поверхности
+*/
+module pwm_button(z=0, top=0){
     pwm_bt_dh = 0.2; // отступ от нижнего слоя
     pwm_bt_h2 = 4.2; // высота от кнопки до корпуса внутри
-    pwm_bt_h1 = z; // толщина внутри отверстия
+    pwm_bt_h1 = z + top; // высота внутри отверстия
     pwm_bt_d2 = pwm_bt_d_hole + 1; // диаметр кнопки за отверстием, шире что бы не выпадала
     pwm_bt_h = pwm_bt_h1 + pwm_bt_h2;
     translate([pwm_hole_delta, 0, -z])
