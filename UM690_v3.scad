@@ -1,6 +1,6 @@
 include <BOSL2/std.scad>
-
-$fn = 60;
+use <pwm12v.scad>
+$fn = 40;
 
 // === Глобальные параметры ===
 rad_fillet = 11; // Радиус фаски корпуса
@@ -49,20 +49,30 @@ grille_count = 14; // кол-во отверстий
 grille_lamella_width = 2;
 
 
-// 8010 cooller
-translate([0, 0, 5+2]) color([0.5, 0.5, 0, 0.2])  %cube([80,80,10], center=true);
+// крепления
+wire_xy = [
+    [w_bort/2 - 15  , h_bort/2 - 20, 90],
+    [-w_bort/2 + 15 , h_bort/2 - 20, 90],
+    [w_bort/2 - 15  , -h_bort/2 + 15, 90],
+    [-w_bort/2 + 15 , -h_bort/2 + 15, 90],
 
-use <pwm12v.scad>
+    //[-w_bort/2 + 15 , 0, 90],
+    //[0              , h_bort/2 - 20, 0],
+    //[0              , -h_bort/2 + 18, 0],
+];
 
 
-// pwm plate
-translate([w_bort/2 - th_bort, -28, th_base]) 
-    rotate([0,0,90]) 
-        pwm_plate();
 
+// SETTINGS
 with_pwm=true;
+with_wires=true;
 
 if (with_pwm){
+    // pwm plate
+    translate([w_bort/2-th_bort, -28, th_base]) 
+        rotate([0,0,90]) 
+            pwm_plate();
+
     // UM690 case with pwm
     pwm_place(mv=[w_bort/2-th_bort, -28, th_base], rot=[0,0,90], bottom_thin=th_base, bt_top=0.1)
         main();
@@ -71,8 +81,11 @@ if (with_pwm){
     main();
 }
 
+// 8010 cooller
+translate([0, 0, 5+2]) 
+    color([0.5, 0.5, 0, 0.2])
+        %cube([80,80,10], center=true);
 
-/// ---- modules -----
 
 // корпус
 module main(){
@@ -82,6 +95,14 @@ module main(){
             raised_lip(dh_bort, th_bort);         // бортик
             for (pos = pos_crews) {
                 mount_boss(pos[0], pos[1]);
+            }
+            //wires
+            if (with_wires){
+                for (wxy = wire_xy) {
+                    translate([wxy[0], wxy[1], th_base]) 
+                        rotate([0,0,wxy[2]])
+                            wire_lock();
+                }
             }
         }
 
@@ -100,6 +121,19 @@ module main(){
             rotate([-90,0,0])
                     linear_extrude(grille_extrude)
                         ventilation_grille(grille_width, grille_height, num_lamellae=grille_count, lamella_width=grille_lamella_width);
+    }
+}
+
+translate([0, 100, 0]) %wire_lock();
+
+// крепление для провода
+module wire_lock(w=8, h=6, d=2){
+    r = (w-0.8*2) / 2;
+    difference(){
+        cube([w, d, h]);
+        translate([w/2, 0, h/2]) 
+            rotate([0, 45, 0]) 
+                cube([r, 6, r], center=true);
     }
 }
 
@@ -199,7 +233,7 @@ module grill_8010_mount(x, y, th_grill, num_lamellae = 10, w_lamella=1.2) {
     }
 }
 
-module ventilation_grille(width, height, num_lamellae = 10, lamella_width = 1.5) {
+module ventilation_grille(width, height, num_lamellae=10, lamella_width=1.5) {
     // Расчёт шага между ламелями
     spacing = width / (num_lamellae - 1);
     echo("space:", spacing);
@@ -219,7 +253,6 @@ module ventilation_grille(width, height, num_lamellae = 10, lamella_width = 1.5)
             pos = -height/2 + i * spacing;
             translate([0, pos])
                 square([width, lamella_width], center=true);
-        }
-        */
+        }*/
     }
 }

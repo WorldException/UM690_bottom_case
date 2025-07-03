@@ -49,7 +49,7 @@ if (case_make){
 }
 
 // корпус PWM
-module pwm_plate(z){
+module pwm_plate(z=0){
     translate([0, 0, z]) %cube([w_pwm, h_pwm, z_pwm]); 
 }
 
@@ -146,10 +146,11 @@ module pwm_clips(thin=1.5, v_thin=1){
     h_stop_2 = 2; // высота левой
     
     dy_left = 18;
-    cyl_r = 2;
+    cyl_r = 2.0;
     cyl_d = cyl_r*2;
     cyl_r0 = screw_d/2;
-    leg_delta = -0.2; // корректировка толщины ножки
+    leg_delta = -0.4; // корректировка толщины ножки
+    d_pl = 0.2; // отступ шурупа от платы
     union(){
         // ограничитель верхнего угла
         translate([w_pwm, 0, z_pwm-h_stop_1]) cube([v_thin, thin, v_thin+h_stop_1]);
@@ -171,8 +172,10 @@ module pwm_clips(thin=1.5, v_thin=1){
             translate([w_pwm/2, h_pwm-cyl_r+cyl_r0, 0]) 
                 difference() {
                     //cylinder(z_pwm, r=cyl_r, $fn=40);
-                    translate([-cyl_d, 0, 0]) cube([cyl_d*2, cyl_d+leg_delta, z_pwm-1.7]); // основание
-                    translate([0, cyl_r, z_pwm-5]) cylinder(z_pwm, r=cyl_r0, $fn=40);
+                    translate([-cyl_d, d_pl, 0]) 
+                        cube([cyl_d*2, cyl_d+leg_delta, z_pwm-1.7]); // основание
+                    translate([0, cyl_r+d_pl, z_pwm-5]) 
+                        cylinder(z_pwm, r=cyl_r0, $fn=40);
                 }
         }
         
