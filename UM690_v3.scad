@@ -3,78 +3,75 @@ use <pwm12v.scad>
 $fn = 40;
 
 // === Глобальные параметры ===
-rad_fillet = 11; // Радиус фаски корпуса
+corner_radius = 11; // Радиус фаски корпуса
 
 // === Корпус ===
-w_box = 126.3;    // Ширина корпуса
-h_box = 127.8;    // Длинна корпуса
-th_wall = 1.5;    // Толщина стенок
-th_base = 2;      // Толщина основания
-ht_main = 10;     // Высота до бортика
+box_width = 126.3;    // Ширина корпуса
+box_height = 127.8;   // Длинна корпуса
+wall_thickness = 1.5; // Толщина стенок
+base_thickness = 2;   // Толщина основания
+main_height = 10;     // Высота до бортика
 
 // === Бортик ===
-w_bort = 124.5;     // Ширина бортика
-h_bort = 126;   // Высота бортика
-dh_bort = 1.8;    // Высота бортика над корпусом
-th_bort = 1.5;    // Толщина бортика
+lip_width = 124.5;    // Ширина бортика
+lip_height = 126;     // Высота бортика
+lip_offset_height = 1.8; // Высота бортика над корпусом
+lip_thickness = 1.5;  // Толщина бортика
 
 // === Крепления ===
-dh_crew = 9.5;     // Расстояние от низа до верха крепления
-ht_crew = ht_main + dh_crew; // Полная высота крепления
-d_screw = 2.8;    // Диаметр болта
-d_head = 4.5;      // Диаметр головки болта
-ht_cap = 2;        // Толщина крышки крепления
-d_ext = 8;         // Внешний диаметр крепления
-dist_x = 112;      // Расстояние между креплениями по X
-dist_y = 111;      // Расстояние между креплениями по Y
+screw_height_offset = 9.5; // Расстояние от низа до верха крепления
+screw_total_height = main_height + screw_height_offset; // Полная высота крепления
+screw_diameter = 2.8;    // Диаметр болта
+screw_head_diameter = 4.5; // Диаметр головки болта
+screw_cap_thickness = 2;  // Толщина крышки крепления
+mount_diameter = 8;       // Внешний диаметр крепления
+mount_spacing_x = 112;    // Расстояние между креплениями по X
+mount_spacing_y = 111;    // Расстояние между креплениями по Y
 
 // === Позиции креплений ===
 pos_crews = [
-    [ dist_x/2,  dist_y/2],
-    [-dist_x/2,  dist_y/2],
-    [-dist_x/2, -dist_y/2],
-    [ dist_x/2, -dist_y/2]
+    [ mount_spacing_x/2,  mount_spacing_y/2],
+    [-mount_spacing_x/2,  mount_spacing_y/2],
+    [-mount_spacing_x/2, -mount_spacing_y/2],
+    [ mount_spacing_x/2, -mount_spacing_y/2]
 ];
 
-lamella_width=4;
+lamella_thickness = 4;
 
 // Решетка
-grille_width = w_bort - 2 * 15; // Оставляем поле 10 мм по краям
+grille_width = lip_width - 2 * 15; // Оставляем поле 10 мм по краям
 grille_height = 5; // высота решеток
-grille_pos_x = 0; // Центрирование по X
-grille_pos_y = 0; // Центрирование по Y
-grille_pos_z = ht_main - grille_height/ 2 - 2;
-grille_extrude=10; // глубина
-grille_count = 14; // кол-во отверстий
-grille_lamella_width = 2;
-
+grille_center_x = 0; // Центрирование по X
+grille_center_y = 0; // Центрирование по Y
+grille_z_offset = main_height - grille_height / 2 - 2;
+grille_depth = 10; // глубина
+grille_lamella_count = 14; // кол-во отверстий
+grille_lamella_thickness = 2;
 
 // крепления
 wire_xy = [
-    [w_bort/2 - 15  , h_bort/2 - 20, 90],
-    [-w_bort/2 + 15 , h_bort/2 - 20, 90],
-    [w_bort/2 - 15  , -h_bort/2 + 15, 90],
-    [-w_bort/2 + 15 , -h_bort/2 + 15, 90],
+    [lip_width/2 - 15  , lip_height/2 - 20, 90],
+    [-lip_width/2 + 15 , lip_height/2 - 20, 90],
+    [lip_width/2 - 15  , -lip_height/2 + 15, 90],
+    [-lip_width/2 + 15 , -lip_height/2 + 15, 90],
 
-    //[-w_bort/2 + 15 , 0, 90],
-    //[0              , h_bort/2 - 20, 0],
-    //[0              , -h_bort/2 + 18, 0],
+    //[-lip_width/2 + 15 , 0, 90],
+    //[0              , lip_height/2 - 20, 0],
+    //[0              , -lip_height/2 + 18, 0],
 ];
 
-
-
 // SETTINGS
-with_pwm=true;
-with_wires=true;
+with_pwm = true;
+with_wires = true;
 
 if (with_pwm){
     // pwm plate
-    translate([w_bort/2-th_bort, -28, th_base]) 
-        rotate([0,0,90]) 
+    translate([lip_width/2-base_thickness, -28, base_thickness])
+        rotate([0,0,90])
             pwm_plate();
 
     // UM690 case with pwm
-    pwm_place(mv=[w_bort/2-th_bort, -28, th_base], rot=[0,0,90], bottom_thin=th_base, bt_top=0.1)
+    pwm_place(mv=[lip_width/2-base_thickness, -28, base_thickness], rot=[0,0,90], bottom_thin=base_thickness, bt_top=0.1)
         main();
 }else{
     // UM690 case without pwm
@@ -82,24 +79,23 @@ if (with_pwm){
 }
 
 // 8010 cooller
-translate([0, 0, 5+2]) 
+translate([0, 0, 5+2])
     color([0.5, 0.5, 0, 0.2])
         %cube([80,80,10], center=true);
-
 
 // корпус
 module main(){
     difference() {
         union() {
-            main_case(ht_main, th_wall, th_base); // корпус
-            raised_lip(dh_bort, th_bort);         // бортик
+            create_main_case(main_height, wall_thickness, base_thickness); // корпус
+            create_raised_lip(lip_offset_height, lip_thickness);         // бортик
             for (pos = pos_crews) {
-                mount_boss(pos[0], pos[1]);
+                create_mount_boss(pos[0], pos[1]);
             }
             //wires
             if (with_wires){
                 for (wxy = wire_xy) {
-                    translate([wxy[0], wxy[1], th_base]) 
+                    translate([wxy[0], wxy[1], base_thickness])
                         rotate([0,0,wxy[2]])
                             wire_lock();
                 }
@@ -107,20 +103,20 @@ module main(){
         }
 
         for (pos = pos_crews) {
-            screw_counterbore(pos[0], pos[1]);
+            create_screw_counterbore(pos[0], pos[1]);
         }
-        
-        grill_8010_mount(0, 0, 5);
-        
-        translate([0, h_box/2+1, grille_pos_z]) 
-            rotate([90,0,0]) 
-                linear_extrude(grille_extrude)
-                    ventilation_grille(grille_width, grille_height, num_lamellae=grille_count, lamella_width=grille_lamella_width);
-        
-        translate([0, -(h_box/2+1), grille_pos_z]) 
+
+        create_grill_8010_mount(0, 0, 5);
+
+        translate([0, box_height/2+1, grille_z_offset])
+            rotate([90,0,0])
+                linear_extrude(grille_depth)
+                    create_ventilation_grille(grille_width, grille_height, num_lamellae=grille_lamella_count, lamella_width=grille_lamella_thickness);
+
+        translate([0, -(box_height/2+1), grille_z_offset])
             rotate([-90,0,0])
-                    linear_extrude(grille_extrude)
-                        ventilation_grille(grille_width, grille_height, num_lamellae=grille_count, lamella_width=grille_lamella_width);
+                    linear_extrude(grille_depth)
+                        create_ventilation_grille(grille_width, grille_height, num_lamellae=grille_lamella_count, lamella_width=grille_lamella_thickness);
     }
 }
 
@@ -131,15 +127,15 @@ module wire_lock(w=8, h=6, d=2){
     r = (w-0.8*2) / 2;
     difference(){
         cube([w, d, h]);
-        translate([w/2, 0, h/2]) 
-            rotate([0, 45, 0]) 
+        translate([w/2, 0, h/2])
+            rotate([0, 45, 0])
                 cube([r, 6, r], center=true);
     }
 }
 
-module main_case(h, thin, base_thin){
-    box = square([w_box, h_box], center=true);
-    rbox = round_corners(box, radius=rad_fillet);
+module create_main_case(h, thin, base_thin){
+    box = square([box_width, box_height], center=true);
+    rbox = round_corners(box, radius=corner_radius);
     difference(){
         offset_sweep(rbox, height=h, check_valid=false);
         up(base_thin)
@@ -148,11 +144,11 @@ module main_case(h, thin, base_thin){
 }
 
 // === Внутренний бортик ===
-module raised_lip(dh, thin){
-    box = square([w_bort, h_bort], center=true);
-    rbox = round_corners(box, radius=rad_fillet);
-    H = dh + ht_main;
-    echo("H:", H, "h:", ht_main, "dh:", dh);
+module create_raised_lip(dh, thin){
+    box = square([lip_width, lip_height], center=true);
+    rbox = round_corners(box, radius=corner_radius);
+    H = dh + main_height;
+    echo("H:", H, "h:", main_height, "dh:", dh);
     difference(){
         offset_sweep(rbox, height=H, check_valid=false);
         offset_sweep(offset(rbox, r=-thin, closed=true), height=H+1);
@@ -160,31 +156,31 @@ module raised_lip(dh, thin){
 }
 
 // === Прилив под крепление ===
-module mount_boss(x, y){
-    translate([x, y, 0.01]) color("blue") 
+module create_mount_boss(x, y){
+    translate([x, y, 0.01]) color("blue")
     difference() {
-        cylinder(h = ht_crew, r=d_ext/2); // внешний цилиндр
-        cylinder(ht_crew + 0.1, r=d_screw/2); // вырез под болт
+        cylinder(h = screw_total_height, r=mount_diameter/2); // внешний цилиндр
+        cylinder(screw_total_height + 0.1, r=screw_diameter/2); // вырез под болт
     }
 }
 
 // === Вырез под головку болта (counterbore) ===
-module screw_counterbore(x, y){
-    h1 = ht_crew - ht_cap;
-    w_chamf = (d_head - d_screw)/2; 
+module create_screw_counterbore(x, y){
+    h1 = screw_total_height - screw_cap_thickness;
+    w_chamf = (screw_head_diameter - screw_diameter)/2;
 
-    hole = circle(d = d_head);
+    hole = circle(d = screw_head_diameter);
     translate([x, y, 0]) color("green")
         offset_sweep(hole, height=h1, top=os_chamfer(width=w_chamf));
 }
 
-module grill_screw(d, h, coord=[0,0,0]){
+module create_grill_screw(d, h, coord=[0,0,0]){
     translate(coord)
         cyl(h, r=d/2, chamfer=-1, center=false);
 }
 
 // === Монтажная площадка с решёткой под кулер 80x10 мм ===
-module grill_8010_mount(x, y, th_grill, num_lamellae = 10, w_lamella=1.2) {
+module create_grill_8010_mount(x, y, th_grill, num_lamellae = 10, w_lamella=1.2) {
     dist_mount = 71.5; // Расстояние между монтажными отверстиями
     d_mount = 5;     // Диаметр монтажных отверстий
     r_mount = d_mount / 2;
@@ -192,14 +188,14 @@ module grill_8010_mount(x, y, th_grill, num_lamellae = 10, w_lamella=1.2) {
     //w_lamella = 1.2;   // Ширина ламели
     spacing = d_grill / (num_lamellae - 1);
     dm = dist_mount/2;
-    
+
     translate([x, y, -0.01]) {
         union(){
             //grill_screw(d_mount, th_grill, [dist_mount/2-8, dist_mount/2-8, 0]);
-            grill_screw(d_mount, th_grill, [dm, dm, 0]);
-            grill_screw(d_mount, th_grill, [-dm, dm, 0]);
-            grill_screw(d_mount, th_grill, [-dm, -dm, 0]);
-            grill_screw(d_mount, th_grill, [dm, -dm, 0]);
+            create_grill_screw(d_mount, th_grill, [dm, dm, 0]);
+            create_grill_screw(d_mount, th_grill, [-dm, dm, 0]);
+            create_grill_screw(d_mount, th_grill, [-dm, -dm, 0]);
+            create_grill_screw(d_mount, th_grill, [dm, -dm, 0]);
 
             linear_extrude(th_grill) {
                 union() {
@@ -233,7 +229,7 @@ module grill_8010_mount(x, y, th_grill, num_lamellae = 10, w_lamella=1.2) {
     }
 }
 
-module ventilation_grille(width, height, num_lamellae=10, lamella_width=1.5) {
+module create_ventilation_grille(width, height, num_lamellae=10, lamella_width=1.5) {
     // Расчёт шага между ламелями
     spacing = width / (num_lamellae - 1);
     echo("space:", spacing);
